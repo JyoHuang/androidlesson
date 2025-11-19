@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -20,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.exmaple.androidlesson.presentation.favorite.FavoriteScreen
 import com.exmaple.androidlesson.presentation.home.HomeScreen
 import com.exmaple.androidlesson.presentation.notification.NotificationListScreen
+import com.exmaple.androidlesson.presentation.profile.ProfileScreen
 import com.exmaple.androidlesson.presentation.search.StockSearchScreen
 @Composable
 fun MainTabScaffold(
@@ -54,6 +56,12 @@ fun MainTabScaffold(
                     icon = { Icon(Icons.Default.List, contentDescription = "通知列表") },
                     label = { Text("通知列表") }
                 )
+                NavigationBarItem(
+                    selected = currentTab == BottomTab.Profile,
+                    onClick = { viewModel.selectTab(BottomTab.Profile) },
+                    icon = { Icon(Icons.Default.Person, contentDescription = "我的") },
+                    label = { Text("我的") }
+                )
             }
         }
     ) { innerPadding ->
@@ -67,7 +75,9 @@ fun MainTabScaffold(
                 BottomTab.Search -> StockSearchScreen()
                 BottomTab.Favorite -> FavoriteScreen()
                 BottomTab.Notification -> NotificationListScreen()
+                BottomTab.Profile -> ProfileScreen()     // ⭐ 新增
             }
         }
     }
 }
+

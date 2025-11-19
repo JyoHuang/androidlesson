@@ -9,8 +9,10 @@ enum class BottomTab {
     Home,
     Search,
     Favorite,
-    Notification
+    Notification,
+    Profile   // ⭐ 新增「我的」
 }
+
 
 class MainViewModel : ViewModel() {
 
