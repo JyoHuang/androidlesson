@@ -99,11 +99,22 @@ fun StockSearchScreen(
                 )
             }
 
+            // 一般提示（例如：已加入我的最愛）
+            uiState.infoMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             // 查詢結果顯示區
             uiState.result?.let { quote ->
                 Spacer(modifier = Modifier.height(24.dp))
 
-                StockQuoteCard(quote = quote)
+                StockQuoteCard(quote = quote, onAddFavorite = { viewModel.addToFavorites() })
 
                 // ⭐ 最後自動更新時間
                 uiState.lastUpdatedTime?.let { last ->
@@ -132,7 +143,10 @@ fun StockSearchScreen(
 }
 
 @Composable
-private fun StockQuoteCard(quote: StockQuote) {
+private fun StockQuoteCard(
+    quote: StockQuote,
+    onAddFavorite: () -> Unit
+){
     val priceColor: Color = when (quote.isUp) {
         true -> Color(0xFFD32F2F)   // 紅色：漲
         false -> Color(0xFF2E7D32)  // 綠色：跌
@@ -247,6 +261,14 @@ private fun StockQuoteCard(quote: StockQuote) {
                         fontWeight = FontWeight.Medium
                     )
                 }
+            }
+
+            // ⭐ 加入我的最愛按鈕
+            Button(
+                onClick = onAddFavorite,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text("加入我的最愛")
             }
         }
     }

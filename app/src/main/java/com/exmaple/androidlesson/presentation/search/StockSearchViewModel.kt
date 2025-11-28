@@ -16,6 +16,8 @@ import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.exmaple.androidlesson.data.favorites.FavoritesRepository
+
 
 data class StockQuote(
     val code: String,
@@ -54,7 +56,8 @@ data class StockSearchUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val result: StockQuote? = null,
-    val lastUpdatedTime: String? = null   // ⭐ 新增：最後更新時間（HH:mm:ss）
+    val lastUpdatedTime: String? = null,   // ⭐ 新增：最後更新時間（HH:mm:ss）
+    val infoMessage: String? = null       // ⭐ 新增：一般提示訊息（加入最愛成功等）
 )
 
 class StockSearchViewModel : ViewModel() {
@@ -66,7 +69,8 @@ class StockSearchViewModel : ViewModel() {
         uiState = uiState.copy(
             query = newQuery,
             errorMessage = null,
-            result = null
+            result = null,
+            infoMessage = null
         )
     }
 
@@ -190,5 +194,31 @@ class StockSearchViewModel : ViewModel() {
         val sdf = SimpleDateFormat("HH:mm:ss", Locale.TAIWAN)
         return sdf.format(Date())
     }
+
+    fun addToFavorites() {
+        val quote = uiState.result
+        if (quote == null) {
+            uiState = uiState.copy(
+                infoMessage = null,
+                errorMessage = "請先查詢一檔股票，再加入我的最愛。"
+            )
+            return
+        }
+
+        FavoritesRepository.addFavorite(quote) { ok, error ->
+            uiState = if (ok) {
+                uiState.copy(
+                    infoMessage = "已加入我的最愛。",
+                    errorMessage = null
+                )
+            } else {
+                uiState.copy(
+                    infoMessage = null,
+                    errorMessage = error ?: "加入我的最愛失敗，請稍後再試。"
+                )
+            }
+        }
+    }
+
 }
 
