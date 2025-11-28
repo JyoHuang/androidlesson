@@ -105,6 +105,18 @@ fun StockSearchScreen(
 
                 StockQuoteCard(quote = quote)
 
+                // ⭐ 最後自動更新時間
+                uiState.lastUpdatedTime?.let { last ->
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "最後自動更新時間：$last",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        textAlign = TextAlign.Center
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(

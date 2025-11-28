@@ -13,6 +13,9 @@ import org.json.JSONObject
 import java.net.URL
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class StockQuote(
     val code: String,
@@ -50,7 +53,8 @@ data class StockSearchUiState(
     val query: String = "",
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val result: StockQuote? = null
+    val result: StockQuote? = null,
+    val lastUpdatedTime: String? = null   // ⭐ 新增：最後更新時間（HH:mm:ss）
 )
 
 class StockSearchViewModel : ViewModel() {
@@ -82,8 +86,10 @@ class StockSearchViewModel : ViewModel() {
                 uiState = uiState.copy(
                     isLoading = false,
                     result = quote,
-                    errorMessage = null
+                    errorMessage = null,
+                    lastUpdatedTime = nowTimeString()   // ⭐ 更新最後更新時間
                 )
+
             } catch (e: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
@@ -167,7 +173,10 @@ class StockSearchViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val quote = fetchStockQuote(stockId)
-                uiState = uiState.copy(result = quote)
+                uiState = uiState.copy(
+                    result = quote,
+                    lastUpdatedTime = nowTimeString()   // ⭐ 自動刷新也更新時間
+                )
                 Log.d("refreshQuote", "更新成功")
             } catch (e: Exception) {
                 // 自動刷新失敗就先忽略，不要打斷使用者
@@ -176,6 +185,10 @@ class StockSearchViewModel : ViewModel() {
             }
         }
     }
-
+    // 放在 class 裡（函式外）
+    private fun nowTimeString(): String {
+        val sdf = SimpleDateFormat("HH:mm:ss", Locale.TAIWAN)
+        return sdf.format(Date())
+    }
 }
 
