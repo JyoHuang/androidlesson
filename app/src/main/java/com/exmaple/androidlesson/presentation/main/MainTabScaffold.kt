@@ -25,7 +25,8 @@ import com.exmaple.androidlesson.presentation.profile.ProfileScreen
 import com.exmaple.androidlesson.presentation.search.StockSearchScreen
 @Composable
 fun MainTabScaffold(
-    viewModel: MainViewModel = viewModel()
+    viewModel: MainViewModel = viewModel(),
+    onLogout: () -> Unit
 ) {
     val currentTab = viewModel.currentTab
 
@@ -75,7 +76,7 @@ fun MainTabScaffold(
                 BottomTab.Search -> StockSearchScreen()
                 BottomTab.Favorite -> FavoriteScreen()
                 BottomTab.Notification -> NotificationListScreen()
-                BottomTab.Profile -> ProfileScreen()     // ⭐ 新增
+                BottomTab.Profile -> ProfileScreen(onLogout = onLogout)    // ⭐ 新增
             }
         }
     }

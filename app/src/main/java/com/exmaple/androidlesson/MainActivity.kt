@@ -30,14 +30,22 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppRoot() {
-    var isLoggedIn by rememberSaveable { mutableStateOf(false) }
+    val auth = remember { FirebaseAuth.getInstance() }
+    // 初始狀態：如果 currentUser 不為空，就代表已登入
+    var isLoggedIn by rememberSaveable { mutableStateOf(auth.currentUser != null) }
 
     if (!isLoggedIn) {
         LoginScreen(
             onLoginSuccess = { isLoggedIn = true }
         )
     } else {
-        MainTabScaffold()
+        MainTabScaffold(
+            onLogout = {
+                auth.signOut()     // 真的登出 Firebase
+                isLoggedIn = false // 觸發 recomposition，畫面回登入頁
+                println("登出")
+            }
+        )
     }
 }
 

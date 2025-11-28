@@ -2,6 +2,8 @@ package com.exmaple.androidlesson.presentation.login
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,8 +44,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextField(
-                value = uiState.account,
-                onValueChange = viewModel::onAccountChanged,
+                value = uiState.email,
+                onValueChange = viewModel::onEmailChanged,
                 label = { Text("帳號") },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -57,15 +59,47 @@ fun LoginScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
-
+            // 顯示錯誤訊息
+            uiState.errorMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp
+                )
+            }
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = { viewModel.login(onLoginSuccess) },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading
             ) {
-                Text("登入")
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Logging in...")
+                } else {
+                    Text("Login")
+                }
             }
+
+            // 做註冊可以解開下面這段：
+            /*
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = { viewModel.register(onLoginSuccess) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isLoading
+            ) {
+                Text("Register")
+            }
+            */
         }
     }
 }
