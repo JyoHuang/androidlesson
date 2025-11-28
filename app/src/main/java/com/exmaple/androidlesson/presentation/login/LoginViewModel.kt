@@ -44,7 +44,8 @@ class LoginViewModel : ViewModel() {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    uiState = uiState.copy(isLoading = false, errorMessage = null)
+                    // ⭐⭐⭐ 這裡清空欄位（完全重置 UI 狀態）
+                    uiState = LoginUiState()
                     onSuccess()
                 } else {
                     val msg = task.exception?.localizedMessage ?: "Login failed."
@@ -73,7 +74,8 @@ class LoginViewModel : ViewModel() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    uiState = uiState.copy(isLoading = false, errorMessage = null)
+                    // ⭐⭐⭐ 這裡清空欄位（完全重置 UI 狀態）
+                    uiState = LoginUiState()
                     onSuccess()
                 } else {
                     val msg = task.exception?.localizedMessage ?: "Register failed."
