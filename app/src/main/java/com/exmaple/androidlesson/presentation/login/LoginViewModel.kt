@@ -28,62 +28,84 @@ class LoginViewModel : ViewModel() {
         uiState = uiState.copy(password = newPassword)
     }
 
-    fun login(onSuccess: () -> Unit) {
+    /**
+     * 共用欄位檢查：不空、長度夠
+     */
+    private fun validateInput(): Boolean {
         val email = uiState.email.trim()
         val password = uiState.password
 
         if (email.isBlank() || password.isBlank()) {
-            uiState = uiState.copy(
-                errorMessage = "Email and password must not be empty."
-            )
-            return
+            uiState = uiState.copy(errorMessage = "Email and password must not be empty.")
+            return false
         }
+
+        // Firebase 要求密碼至少 6 碼
+        if (password.length < 6) {
+            uiState = uiState.copy(errorMessage = "Password must be at least 6 characters.")
+            return false
+        }
+
+        return true
+    }
+
+    fun login(onSuccess: () -> Unit) {
+        if (!validateInput()) return
+
+        val email = uiState.email.trim()
+        val password = uiState.password
 
         uiState = uiState.copy(isLoading = true, errorMessage = null)
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // ⭐⭐⭐ 這裡清空欄位（完全重置 UI 狀態）
+                    // ✅ 登入成功後清空欄位
                     uiState = LoginUiState()
                     onSuccess()
                 } else {
-                    val msg = task.exception?.localizedMessage ?: "Login failed."
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        errorMessage = msg
-                    )
+                    val msg = mapAuthErrorMessage(task.exception)
+                    uiState = uiState.copy(isLoading = false, errorMessage = msg)
                 }
             }
     }
 
     // 如果你想順便提供「註冊」也可以加一個：
+    /**
+     * 註冊新帳號
+     * 用目前輸入的 email / password 呼叫 Firebase
+     */
     fun register(onSuccess: () -> Unit) {
+        if (!validateInput()) return
+
         val email = uiState.email.trim()
         val password = uiState.password
-
-        if (email.isBlank() || password.isBlank()) {
-            uiState = uiState.copy(
-                errorMessage = "Email and password must not be empty."
-            )
-            return
-        }
 
         uiState = uiState.copy(isLoading = true, errorMessage = null)
 
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // ⭐⭐⭐ 這裡清空欄位（完全重置 UI 狀態）
+                    // ✅ 註冊成功後一樣清空欄位並視為已登入
                     uiState = LoginUiState()
                     onSuccess()
                 } else {
-                    val msg = task.exception?.localizedMessage ?: "Register failed."
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        errorMessage = msg
-                    )
+                    val msg = mapAuthErrorMessage(task.exception)
+                    uiState = uiState.copy(isLoading = false, errorMessage = msg)
                 }
             }
     }
+    private fun mapAuthErrorMessage(e: Exception?): String {
+        val raw = e?.message ?: return "Something went wrong."
+        return when {
+            raw.contains("email address is badly formatted", ignoreCase = true) ->
+                "Email 格式好像怪怪的，請再檢查一次。"
+            raw.contains("password is invalid", ignoreCase = true) ->
+                "密碼錯誤，請再試一次。"
+            raw.contains("address is already in use", ignoreCase = true) ->
+                "這個 Email 已經被註冊過囉，可以直接登入。"
+            else -> raw
+        }
+    }
+
 }

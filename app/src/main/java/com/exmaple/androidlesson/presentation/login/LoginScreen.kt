@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -89,9 +90,16 @@ fun LoginScreen(
                 }
             }
 
-            // 做註冊可以解開下面這段：
-            /*
-            Spacer(modifier = Modifier.height(8.dp))
+            // 小小分隔文字
+            Text(
+                text = "OR",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // ⬇️ 註冊按鈕
             OutlinedButton(
                 onClick = { viewModel.register(onLoginSuccess) },
                 modifier = Modifier.fillMaxWidth(),
@@ -99,7 +107,6 @@ fun LoginScreen(
             ) {
                 Text("Register")
             }
-            */
         }
     }
 }
