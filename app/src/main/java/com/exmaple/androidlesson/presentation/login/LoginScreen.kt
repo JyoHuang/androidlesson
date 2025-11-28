@@ -8,12 +8,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,6 +62,21 @@ fun LoginScreen(
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
+            // ⭐ Forgot password 按鈕
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                TextButton(
+                    onClick = { viewModel.resetPassword() },
+                    enabled = !uiState.isLoading
+                ) {
+                    Text(text = "Forgot password?")
+                }
+            }
+
             // 顯示錯誤訊息
             uiState.errorMessage?.let { msg ->
                 Spacer(modifier = Modifier.height(12.dp))
@@ -69,6 +86,19 @@ fun LoginScreen(
                     fontSize = 14.sp
                 )
             }
+
+            // 一般提示訊息（例如「已寄出重設信」）
+            uiState.infoMessage?.let { msg ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = msg,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
