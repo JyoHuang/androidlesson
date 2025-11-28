@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -59,5 +60,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
 
-
+    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.android.gms:play-services-auth:20.7.0") // 請使用最新版本
+    // 2. Firebase Authentication 核心 SDK (必加)
+    implementation("com.google.firebase:firebase-auth")
 }

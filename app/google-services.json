@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "893685686456",
+    "project_id": "androidlesson-19cca",
+    "storage_bucket": "androidlesson-19cca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:893685686456:android:54d4647d96f27b3270944d",
+        "android_client_info": {
+          "package_name": "com.exmaple.androidlesson"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOgSSH8fEvhG7Kjqjmeg8P6vl9_T--0hY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

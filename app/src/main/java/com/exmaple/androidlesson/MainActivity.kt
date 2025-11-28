@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.exmaple.androidlesson.presentation.login.LoginScreen
 import com.exmaple.androidlesson.presentation.main.MainTabScaffold
 import com.exmaple.androidlesson.ui.theme.AndroidLessonTheme
+import com.google.firebase.auth.FirebaseAuth // 確保 FirebaseAuth 類別可以被解析
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
