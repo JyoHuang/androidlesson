@@ -65,4 +65,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.7.0") // 請使用最新版本
     // 2. Firebase Authentication 核心 SDK (必加)
     implementation("com.google.firebase:firebase-auth")
+
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
 }
