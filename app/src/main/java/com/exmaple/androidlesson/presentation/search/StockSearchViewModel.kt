@@ -1,5 +1,6 @@
 package com.exmaple.androidlesson.presentation.search
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -155,4 +156,26 @@ class StockSearchViewModel : ViewModel() {
                 time = time
             )
         }
+    /**
+     * 自動刷新用：如果目前有查到的股票，就再抓一次最新報價。
+     * 不會改動 isLoading，避免畫面一直閃。
+     */
+    fun refreshQuote() {
+        val stockId = uiState.result?.code ?: uiState.query.trim()
+        if (stockId.isBlank()) return
+
+        viewModelScope.launch {
+            try {
+                val quote = fetchStockQuote(stockId)
+                uiState = uiState.copy(result = quote)
+                Log.d("refreshQuote", "更新成功")
+            } catch (e: Exception) {
+                // 自動刷新失敗就先忽略，不要打斷使用者
+                // 如果你想顯示錯誤，也可以在這邊更新 errorMessage
+                Log.e("refreshQuote", "錯誤: ${e.message}")
+            }
+        }
+    }
+
 }
+

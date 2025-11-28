@@ -14,12 +14,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.exmaple.androidlesson.ui.theme.AndroidLessonTheme
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 
 @Composable
 fun StockSearchScreen(
     viewModel: StockSearchViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
+
+    // ⭐ 每 5 秒自動刷新目前查到的那一檔股票
+    LaunchedEffect(uiState.result?.code) {
+        // 沒有查到任何股票就不要進入自動刷新
+        val currentCode = uiState.result?.code
+        if (currentCode.isNullOrBlank()) return@LaunchedEffect
+
+        while (true) {
+            delay(5000L)
+            viewModel.refreshQuote()
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize()
