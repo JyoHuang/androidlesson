@@ -17,6 +17,8 @@ import com.exmaple.androidlesson.presentation.login.LoginScreen
 import com.exmaple.androidlesson.presentation.main.MainTabScaffold
 import com.exmaple.androidlesson.ui.theme.AndroidLessonTheme
 import com.google.firebase.auth.FirebaseAuth // 確保 FirebaseAuth 類別可以被解析
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,7 +47,9 @@ fun AppRoot() {
     var rootScreen by remember { mutableStateOf<RootScreen>(RootScreen.MainTabs) }
 
     if (!isLoggedIn) {
-        LoginScreen(onLoginSuccess = { isLoggedIn = true })
+        LoginScreen(onLoginSuccess = {
+            isLoggedIn = true
+        })
     } else {
         when (val screen = rootScreen) {
             is RootScreen.MainTabs -> {

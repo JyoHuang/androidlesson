@@ -5,6 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
 data class LoginUiState(
     val email: String = "",
@@ -64,6 +67,7 @@ class LoginViewModel : ViewModel() {
                     // ✅ 登入成功後清空欄位
                     uiState = LoginUiState()
                     onSuccess()
+                    updateUserToken(email)
                 } else {
                     val msg = mapAuthErrorMessage(task.exception)
                     uiState = uiState.copy(isLoading = false, errorMessage = msg)
@@ -90,6 +94,7 @@ class LoginViewModel : ViewModel() {
                     // ✅ 註冊成功後一樣清空欄位並視為已登入
                     uiState = LoginUiState()
                     onSuccess()
+                    updateUserToken(email)
                 } else {
                     val msg = mapAuthErrorMessage(task.exception)
                     uiState = uiState.copy(isLoading = false, errorMessage = msg)
@@ -146,6 +151,18 @@ class LoginViewModel : ViewModel() {
                     )
                 }
             }
+    }
+    private fun updateUserToken(email : String){
+        val db = FirebaseFirestore.getInstance()
+        val uid = FirebaseAuth.getInstance().currentUser!!.uid
+
+        db.collection("users").document(uid).set(
+            mapOf(
+                "email" to email,
+                "createdAt" to FieldValue.serverTimestamp()
+            ),
+            SetOptions.merge()
+        )
     }
 
 }
