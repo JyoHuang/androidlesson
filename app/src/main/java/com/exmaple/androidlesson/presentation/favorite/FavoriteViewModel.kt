@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 data class FavoriteQuoteItem(
     val base: FavoriteStock,
@@ -25,7 +28,8 @@ data class FavoriteQuoteItem(
 data class FavoriteUiState(
     val items: List<FavoriteQuoteItem> = emptyList(),
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val lastUpdatedTime: String? = null      // ⭐ 新增：最後自動更新時間
 )
 
 class FavoriteViewModel : ViewModel() {
@@ -112,7 +116,10 @@ class FavoriteViewModel : ViewModel() {
                 } else {
                     item
                 }
-            }
+            },
+            // ⭐ 只要有一檔成功更新報價，就更新最後更新時間
+            lastUpdatedTime = if (quote != null && error == null) nowTimeString() else uiState.lastUpdatedTime
+
         )
     }
 
@@ -126,7 +133,34 @@ class FavoriteViewModel : ViewModel() {
             }
         }
     }
+    /**
+     * ⭐ 自動刷新全部收藏的即時報價
+     * 每次會針對目前 uiState 裡的所有股票 code 再抓一次 TWSE MIS 報價
+     */
+    fun refreshAllQuotes() {
+        // 目前收藏的所有股票代號
+        val codes = uiState.items.map { it.base.code }.distinct()
+        if (codes.isEmpty()) return
 
+        codes.forEach { code ->
+            viewModelScope.launch {
+                try {
+                    val quote = fetchStockQuoteForFavorite(code)
+                    updateItemQuote(
+                        code = code,
+                        quote = quote,
+                        error = null
+                    )
+                } catch (e: Exception) {
+                    updateItemQuote(
+                        code = code,
+                        quote = null,
+                        error = e.message ?: "取得報價失敗"
+                    )
+                }
+            }
+        }
+    }
     override fun onCleared() {
         super.onCleared()
         listenerRegistration?.remove()
@@ -190,5 +224,10 @@ class FavoriteViewModel : ViewModel() {
                 time = time
             )
         }
+
+    private fun nowTimeString(): String {
+        val sdf = SimpleDateFormat("HH:mm:ss", Locale.TAIWAN)
+        return sdf.format(Date())
+    }
 }
 

@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,12 +24,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.exmaple.androidlesson.ui.theme.AndroidLessonTheme
+import kotlinx.coroutines.delay
 
 @Composable
 fun FavoriteScreen(
     viewModel: FavoriteViewModel = viewModel()
 ) {
     val uiState = viewModel.uiState
+
+    // ⭐ 只要在「我的最愛」頁，背景就每 5 秒刷新一次全部報價
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000L)
+            viewModel.refreshAllQuotes()
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -79,14 +89,33 @@ fun FavoriteScreen(
                 }
 
                 else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Column(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(uiState.items) { item ->
-                            FavoriteQuoteCard(
-                                item = item,
-                                onDelete = { viewModel.deleteFavorite(item.base.code) }
+                        LazyColumn(
+                            modifier = Modifier
+                                .weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(uiState.items) { item ->
+                                FavoriteQuoteCard(
+                                    item = item,
+                                    onDelete = { viewModel.deleteFavorite(item.base.code) }
+                                )
+                            }
+                        }
+
+                        // ⭐ 最後自動更新時間（整個列表共用）
+                        uiState.lastUpdatedTime?.let { last ->
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "最後自動更新時間：$last",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
                     }
