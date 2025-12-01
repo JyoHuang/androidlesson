@@ -47,4 +47,15 @@ class FavoriteViewModel : ViewModel() {
         super.onCleared()
         listenerRegistration?.remove()
     }
+
+    fun deleteFavorite(code: String) {
+        // 這裡我們不特別去改 uiState，因為 Firestore snapshot 會自動更新列表
+        FavoritesRepository.deleteFavorite(code) { ok, error ->
+            if (!ok && error != null) {
+                // 簡單做一個錯誤提示（可選）
+                uiState = uiState.copy(errorMessage = error)
+            }
+        }
+    }
+
 }

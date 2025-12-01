@@ -93,4 +93,38 @@ object FavoritesRepository {
                 onResult(list, null)
             }
     }
+
+    /**
+     * 刪除我的最愛
+     */
+    fun deleteFavorite(
+        code: String,
+        onResult: (Boolean, String?) -> Unit
+    ) {
+        val col = userFavoritesCollection()
+        if (col == null) {
+            onResult(false, "尚未登入，無法刪除收藏。")
+            return
+        }
+
+        col.document(code)
+            .delete()
+            .addOnSuccessListener { onResult(true, null) }
+            .addOnFailureListener { e -> onResult(false, e.message) }
+    }
+    /**
+     * 監聽某股票是否已加入我的最愛（即時更新）
+     */
+    fun observeIsFavorite(
+        code: String,
+        onResult: (Boolean) -> Unit
+    ): ListenerRegistration? {
+        val col = userFavoritesCollection() ?: return null
+
+        return col.document(code)
+            .addSnapshotListener { doc, _ ->
+                onResult(doc?.exists() == true)
+            }
+    }
+
 }

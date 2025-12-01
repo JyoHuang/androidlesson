@@ -1,5 +1,6 @@
 package com.exmaple.androidlesson.presentation.favorite
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,6 +20,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.exmaple.androidlesson.data.favorites.FavoriteStock
 import com.exmaple.androidlesson.ui.theme.AndroidLessonTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+
 
 @Composable
 fun FavoriteScreen(
@@ -80,7 +86,10 @@ fun FavoriteScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(uiState.favorites) { fav ->
-                            FavoriteItemCard(fav)
+                            FavoriteItemCard(
+                                fav = fav,
+                                onDelete = { viewModel.deleteFavorite(fav.code) }
+                            )
                         }
                     }
                 }
@@ -90,9 +99,17 @@ fun FavoriteScreen(
 }
 
 @Composable
-private fun FavoriteItemCard(fav: FavoriteStock) {
+private fun FavoriteItemCard(
+    fav: FavoriteStock,
+    onDelete: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = { /* 未來可以做「查看詳情」 */ },
+                onLongClick = onDelete // ⭐ 長按刪除
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -111,6 +128,13 @@ private fun FavoriteItemCard(fav: FavoriteStock) {
             Text(
                 text = "最近一次記錄價格：${fav.lastPrice ?: "-"}",
                 fontSize = 14.sp
+            )
+        }
+        // ⭐ 右側刪除按鈕
+        IconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "刪除此收藏"
             )
         }
     }

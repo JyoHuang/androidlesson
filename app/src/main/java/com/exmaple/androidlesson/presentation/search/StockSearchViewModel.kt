@@ -10,13 +10,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.net.URL
+
+
+
 import kotlin.math.abs
 import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import com.exmaple.androidlesson.data.favorites.FavoritesRepository
+import com.google.firebase.firestore.ListenerRegistration
+import java.net.URL
 
 
 data class StockQuote(
@@ -57,10 +61,13 @@ data class StockSearchUiState(
     val errorMessage: String? = null,
     val result: StockQuote? = null,
     val lastUpdatedTime: String? = null,   // ⭐ 新增：最後更新時間（HH:mm:ss）
-    val infoMessage: String? = null       // ⭐ 新增：一般提示訊息（加入最愛成功等）
+    val infoMessage: String? = null,       // ⭐ 新增：一般提示訊息（加入最愛成功等）
+    val isFavorite: Boolean = false    // ⭐ 新增
 )
 
 class StockSearchViewModel : ViewModel() {
+
+    private var favoriteListener: ListenerRegistration? = null
 
     var uiState by mutableStateOf(StockSearchUiState())
         private set
@@ -87,6 +94,14 @@ class StockSearchViewModel : ViewModel() {
 
             try {
                 val quote = fetchStockQuote(stockId)
+
+                // ⭐ 找到股票後，開始監聽是否已收藏
+                favoriteListener?.remove()
+                favoriteListener = FavoritesRepository.observeIsFavorite(quote.code) { isFav ->
+                    uiState = uiState.copy(isFavorite = isFav)
+                }
+
+
                 uiState = uiState.copy(
                     isLoading = false,
                     result = quote,
@@ -209,7 +224,8 @@ class StockSearchViewModel : ViewModel() {
             uiState = if (ok) {
                 uiState.copy(
                     infoMessage = "已加入我的最愛。",
-                    errorMessage = null
+                    errorMessage = null,
+                    isFavorite = true     // ⭐ 立刻更新按鈕狀態
                 )
             } else {
                 uiState.copy(

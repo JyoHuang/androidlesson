@@ -114,7 +114,9 @@ fun StockSearchScreen(
             uiState.result?.let { quote ->
                 Spacer(modifier = Modifier.height(24.dp))
 
-                StockQuoteCard(quote = quote, onAddFavorite = { viewModel.addToFavorites() })
+                StockQuoteCard(quote = quote,
+                    isFavorite = uiState.isFavorite,          // ⭐ 加這行
+                    onAddFavorite = { viewModel.addToFavorites() })
 
                 // ⭐ 最後自動更新時間
                 uiState.lastUpdatedTime?.let { last ->
@@ -145,7 +147,9 @@ fun StockSearchScreen(
 @Composable
 private fun StockQuoteCard(
     quote: StockQuote,
-    onAddFavorite: () -> Unit
+    isFavorite: Boolean,
+    onAddFavorite: () -> Unit,
+
 ){
     val priceColor: Color = when (quote.isUp) {
         true -> Color(0xFFD32F2F)   // 紅色：漲
@@ -264,12 +268,25 @@ private fun StockQuoteCard(
             }
 
             // ⭐ 加入我的最愛按鈕
-            Button(
-                onClick = onAddFavorite,
-                modifier = Modifier.align(Alignment.End)
-            ) {
-                Text("加入我的最愛")
+            if (isFavorite) {
+                // ⭐ 已收藏按鈕（不可按）
+                OutlinedButton(
+                    onClick = {},
+                    enabled = false,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("已加入")
+                }
+            } else {
+                // ⭐ 未收藏按鈕
+                Button(
+                    onClick = onAddFavorite,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("加入我的最愛")
+                }
             }
+
         }
     }
 }
