@@ -43,8 +43,7 @@ class GridStrategyListViewModel : ViewModel() {
      * 在 Composable 中用 LaunchedEffect(Unit) 呼叫一次
      */
     fun start(stockId: String) {
-        if (initialized) return
-        initialized = true
+        listenerRegistration?.remove()  // 保險：先把舊 listener 清掉
 
         stockIdInternal = stockId
         uiState = uiState.copy(

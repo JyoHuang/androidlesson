@@ -29,8 +29,13 @@ fun GridStrategyListScreen(
     onBack: () -> Unit = {},
     onAddNew: (stockId: String) -> Unit = {},
     onEditStrategy: (stockId: String, strategyId: String) -> Unit = { _, _ -> },
-    viewModel: GridStrategyListViewModel = viewModel()
 ) {
+
+    // ⭐ 這裡加 key，讓不同 stockId 拿到不同 ViewModel 實例
+    val viewModel: GridStrategyListViewModel = viewModel(
+        key = "GridStrategyListViewModel_$stockId"
+    )
+
     val uiState = viewModel.uiState
 
     LaunchedEffect(Unit) {
