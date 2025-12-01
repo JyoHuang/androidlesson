@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.exmaple.androidlesson.data.firebase.FcmTokenManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -163,6 +164,7 @@ class LoginViewModel : ViewModel() {
             ),
             SetOptions.merge()
         )
+        FcmTokenManager.registerTokenForCurrentUser()
     }
 
 }

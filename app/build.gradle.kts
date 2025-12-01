@@ -69,4 +69,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation("com.google.firebase:firebase-firestore")
 
+    implementation("com.google.firebase:firebase-messaging")
+
 }
