@@ -26,7 +26,8 @@ import com.exmaple.androidlesson.presentation.search.StockSearchScreen
 @Composable
 fun MainTabScaffold(
     viewModel: MainViewModel = viewModel(),
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onOpenGridForStock: (String) -> Unit   // ⭐ 新增 callback
 ) {
     val currentTab = viewModel.currentTab
 
@@ -74,7 +75,9 @@ fun MainTabScaffold(
             when (currentTab) {
                 BottomTab.Home -> HomeScreen()
                 BottomTab.Search -> StockSearchScreen()
-                BottomTab.Favorite -> FavoriteScreen()
+                BottomTab.Favorite -> FavoriteScreen(
+                    onOpenGridForStock = onOpenGridForStock // ⭐ 把 callback 傳進 FavoriteTab
+                )
                 BottomTab.Notification -> NotificationListScreen()
                 BottomTab.Profile -> ProfileScreen(onLogout = onLogout)    // ⭐ 新增
             }

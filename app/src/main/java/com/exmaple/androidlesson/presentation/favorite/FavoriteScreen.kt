@@ -10,6 +10,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +29,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun FavoriteScreen(
-    viewModel: FavoriteViewModel = viewModel()
+    viewModel: FavoriteViewModel = viewModel(),
+    onOpenGridForStock: (String) -> Unit      // ⭐ 新增
 ) {
     val uiState = viewModel.uiState
 
@@ -100,7 +102,10 @@ fun FavoriteScreen(
                             items(uiState.items) { item ->
                                 FavoriteQuoteCard(
                                     item = item,
-                                    onDelete = { viewModel.deleteFavorite(item.base.code) }
+                                    onDelete = { viewModel.deleteFavorite(item.base.code) },
+                                    onOpenGrid = { stockId ->
+                                        onOpenGridForStock(stockId)   // ⭐ 這裡往上丟出去
+                                    }
                                 )
                             }
                         }
@@ -127,7 +132,8 @@ fun FavoriteScreen(
 @Composable
 private fun FavoriteQuoteCard(
     item: FavoriteQuoteItem,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onOpenGrid: (String) -> Unit      // ⭐ 新增
 ) {
     val quote = item.quote
 
@@ -158,6 +164,12 @@ private fun FavoriteQuoteCard(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
+                // ⭐ 左邊：網格策略按鈕
+                OutlinedButton(
+                    onClick = { onOpenGrid(item.base.code) }
+                ) {
+                    Text("網格策略")
+                }
 
                 IconButton(onClick = onDelete) {
                     Icon(
@@ -289,6 +301,8 @@ private fun FavoriteQuoteCard(
 @Composable
 fun FavoriteScreenPreview() {
     AndroidLessonTheme {
-        FavoriteScreen()
+        FavoriteScreen(
+            onOpenGridForStock = {}
+        )
     }
 }
