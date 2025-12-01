@@ -4,12 +4,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.exmaple.androidlesson.data.favorites.FavoriteStock
 import com.exmaple.androidlesson.data.favorites.FavoritesRepository
+import com.exmaple.androidlesson.presentation.search.StockQuote
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
+import java.net.URL
+
+data class FavoriteQuoteItem(
+    val base: FavoriteStock,
+    val quote: StockQuote? = null,
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null
+)
 
 data class FavoriteUiState(
-    val favorites: List<FavoriteStock> = emptyList(),
+    val items: List<FavoriteQuoteItem> = emptyList(),
     val isLoading: Boolean = false,
     val errorMessage: String? = null
 )
@@ -27,18 +41,88 @@ class FavoriteViewModel : ViewModel() {
 
     private fun subscribeFavorites() {
         listenerRegistration = FavoritesRepository.observeFavorites { list, error ->
-            uiState = if (error != null) {
-                FavoriteUiState(
-                    favorites = emptyList(),
+            if (error != null) {
+                uiState = FavoriteUiState(
+                    items = emptyList(),
                     isLoading = false,
                     errorMessage = error
                 )
-            } else {
-                FavoriteUiState(
-                    favorites = list,
+                return@observeFavorites
+            }
+
+            if (list.isEmpty()) {
+                uiState = FavoriteUiState(
+                    items = emptyList(),
                     isLoading = false,
                     errorMessage = null
                 )
+                return@observeFavorites
+            }
+
+            // 先建立「空的」 item，顯示 loading 狀態
+            val initialItems = list.map { fav ->
+                FavoriteQuoteItem(
+                    base = fav,
+                    quote = null,
+                    isLoading = true,
+                    errorMessage = null
+                )
+            }
+            uiState = FavoriteUiState(
+                items = initialItems,
+                isLoading = false,
+                errorMessage = null
+            )
+
+            // 幫每一檔股票抓一次即時報價
+            list.forEach { fav ->
+                viewModelScope.launch {
+                    try {
+                        val quote = fetchStockQuoteForFavorite(fav.code)
+                        updateItemQuote(
+                            code = fav.code,
+                            quote = quote,
+                            error = null
+                        )
+                    } catch (e: Exception) {
+                        updateItemQuote(
+                            code = fav.code,
+                            quote = null,
+                            error = e.message ?: "取得報價失敗"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun updateItemQuote(
+        code: String,
+        quote: StockQuote?,
+        error: String?
+    ) {
+        uiState = uiState.copy(
+            items = uiState.items.map { item ->
+                if (item.base.code == code) {
+                    item.copy(
+                        quote = quote,
+                        isLoading = false,
+                        errorMessage = error
+                    )
+                } else {
+                    item
+                }
+            }
+        )
+    }
+
+    /**
+     * 給「刪除收藏」用，之前你已經有這個功能，沿用它
+     */
+    fun deleteFavorite(code: String) {
+        FavoritesRepository.deleteFavorite(code) { ok, error ->
+            if (!ok && error != null) {
+                uiState = uiState.copy(errorMessage = error)
             }
         }
     }
@@ -48,14 +132,63 @@ class FavoriteViewModel : ViewModel() {
         listenerRegistration?.remove()
     }
 
-    fun deleteFavorite(code: String) {
-        // 這裡我們不特別去改 uiState，因為 Firestore snapshot 會自動更新列表
-        FavoritesRepository.deleteFavorite(code) { ok, error ->
-            if (!ok && error != null) {
-                // 簡單做一個錯誤提示（可選）
-                uiState = uiState.copy(errorMessage = error)
-            }
-        }
-    }
+    /**
+     * 給「我的最愛」用的 TWSE MIS 抓報價，邏輯跟查價頁類似
+     */
+    private suspend fun fetchStockQuoteForFavorite(stockId: String): StockQuote =
+        withContext(Dispatchers.IO) {
+            val url =
+                "https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${stockId}.tw&json=1&delay=0"
 
+            val jsonStr = URL(url).readText()
+
+            val root = JSONObject(jsonStr)
+            val rtMessage = root.optString("rtmessage", "")
+            if (rtMessage != "OK") {
+                throw Exception("伺服器回傳訊息：$rtMessage")
+            }
+
+            val arr = root.optJSONArray("msgArray")
+                ?: throw Exception("查無資料。")
+
+            if (arr.length() == 0) {
+                throw Exception("找不到代號 $stockId 的報價。")
+            }
+
+            val obj = arr.getJSONObject(0)
+
+            val code = obj.optString("c", stockId)
+            val name = obj.optString("n", "")
+
+            val lastPrice = obj.optString("z").toDoubleOrNull()
+            val open = obj.optString("o").toDoubleOrNull()
+            val high = obj.optString("h").toDoubleOrNull()
+            val low = obj.optString("l").toDoubleOrNull()
+            val prevClose = obj.optString("y").toDoubleOrNull()
+            val volume = obj.optString("v").toLongOrNull()
+            val time = obj.optString("t", "")
+
+            val change = if (lastPrice != null && prevClose != null) {
+                (lastPrice - prevClose)
+            } else null
+
+            val changePercent = if (change != null && prevClose != null && prevClose != 0.0) {
+                (change / prevClose) * 100.0
+            } else null
+
+            StockQuote(
+                code = code,
+                name = name,
+                lastPrice = lastPrice,
+                open = open,
+                high = high,
+                low = low,
+                prevClose = prevClose,
+                change = change,
+                changePercent = changePercent,
+                volume = volume,
+                time = time
+            )
+        }
 }
+
