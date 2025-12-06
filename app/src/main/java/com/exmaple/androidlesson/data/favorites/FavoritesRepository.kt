@@ -121,6 +121,12 @@ object FavoritesRepository {
     ): ListenerRegistration? {
         val col = userFavoritesCollection() ?: return null
 
+        // ⭐ 重點：code 是空的時候，直接當「未收藏」，不要去監聽
+        if (code.isBlank()) {
+            onResult(false)
+            return null
+        }
+
         return col.document(code)
             .addSnapshotListener { doc, _ ->
                 onResult(doc?.exists() == true)

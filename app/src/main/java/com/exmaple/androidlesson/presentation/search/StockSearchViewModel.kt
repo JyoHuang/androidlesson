@@ -91,16 +91,17 @@ class StockSearchViewModel : ViewModel() {
 
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null, result = null)
-
             try {
                 val quote = fetchStockQuote(stockId)
-
                 // ⭐ 找到股票後，開始監聽是否已收藏
                 favoriteListener?.remove()
-                favoriteListener = FavoritesRepository.observeIsFavorite(quote.code) { isFav ->
+
+                // ⭐ 有些情況 API 回來的 c 可能是空字串，就 fallback 到使用者輸入的 stockId
+                val favoriteCode = if (quote.code.isBlank()) stockId else quote.code
+
+                favoriteListener = FavoritesRepository.observeIsFavorite(favoriteCode) { isFav ->
                     uiState = uiState.copy(isFavorite = isFav)
                 }
-
 
                 uiState = uiState.copy(
                     isLoading = false,
@@ -110,10 +111,24 @@ class StockSearchViewModel : ViewModel() {
                 )
 
             } catch (e: Exception) {
+                // 失敗時把監聽關掉，避免舊資料殘留
+                favoriteListener?.remove()
+                favoriteListener = null
+
+                val rawMessage = e.message ?: "查詢失敗，請稍後再試。"
+                val friendly = if (rawMessage.contains("查無此股票代號")) {
+                    // 統一顯示成「查無此股票」
+                    "查無此股票代號：$stockId，請確認是否輸入正確。"
+                } else {
+                    rawMessage
+                }
+
                 uiState = uiState.copy(
                     isLoading = false,
-                    result = null,
-                    errorMessage = e.message ?: "查詢失敗，請稍後再試。"
+                    result = null,          // ⭐ 清掉舊的查價結果 → 卡片不會再顯示
+                    isFavorite = false,     // ⭐ 也順便重置收藏狀態
+                    lastUpdatedTime = null,
+                    errorMessage = friendly
                 )
             }
         }
@@ -136,17 +151,18 @@ class StockSearchViewModel : ViewModel() {
             if (rtMessage != "OK") {
                 throw Exception("伺服器回傳訊息：$rtMessage")
             }
-
+            Log.d("查詢結果",jsonStr )
             val arr = root.optJSONArray("msgArray")
                 ?: throw Exception("查無資料。")
 
-            if (arr.length() == 0) {
-                throw Exception("找不到代號 $stockId 的報價。")
-            }
+
 
             val obj = arr.getJSONObject(0)
 
             val code = obj.optString("c", stockId)
+            if (code == "") {
+                throw Exception("查無此股票代號：$stockId")
+            }
             val name = obj.optString("n", "")
 
             // TWSE MIS 常見欄位：z=成交價, y=昨收, o=開, h=高, l=低, v=成交量, t=時間
