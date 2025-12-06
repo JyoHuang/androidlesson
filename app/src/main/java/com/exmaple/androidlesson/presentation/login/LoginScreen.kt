@@ -114,9 +114,9 @@ fun LoginScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Logging in...")
+                    Text("登入中...")
                 } else {
-                    Text("Login")
+                    Text("登入")
                 }
             }
 

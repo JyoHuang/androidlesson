@@ -47,7 +47,7 @@ fun HomeScreen() {
 
             // ⭐ 圓角大圖
             Image(
-                painter = painterResource(id = R.drawable.home_banner2),
+                painter = painterResource(id = R.drawable.fingerprint_icon),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
